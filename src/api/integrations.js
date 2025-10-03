@@ -13,7 +13,7 @@ export const UploadFile = async ({ file }) => {
     file_name: file.name,
     file_size: file.size,
     upload_date: new Date().toISOString()
- h2
+  };
 };
 
 // Mock LLM functionality for geocoding
