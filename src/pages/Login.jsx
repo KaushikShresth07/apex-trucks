@@ -173,23 +173,3 @@ export default function Login() {
   );
 }
 
-// Import Truck icon component
-const Truck = ({ className, ...props }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    {...props}
-  >
-    <path d="M16 3h5v5" />
-    <path d="M21 3l-7.5 7.5" />
-    <rect x="3" y="12" width="12" height="8" rx="1" />
-    <circle cx="7.5" cy="20" r="1.5" />
-    <circle cx="15.5" cy="20" r="1.5" />
-  </svg>
-);
