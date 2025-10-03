@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LogIn, AlertCircle, Lock, User as UserIcon } from "lucide-react";
+import { LogIn, AlertCircle, Lock, User as UserIcon, Truck } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 export default function Login() {
@@ -75,22 +75,6 @@ export default function Login() {
           <p className="text-gray-600 mt-2">Sign in to manage truck listings</p>
         </div>
 
-        {/* Demo Notice */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-blue-900">Demo Credentials</h3>
-              <p className="text-blue-700 text-sm mt-1">
-                Username: <code className="bg-blue-100 px-1 rounded">admin</code><br />
-                Password: <code className="bg-blue-100 px-1 rounded">Password@123</code>
-              </p>
-              <p className="text-xs text-blue-600 mt-2">
-                ⚠️ These credentials are for demo purposes only and should not be used in production.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Login Form */}
         <Card className="shadow-xl border-0">
