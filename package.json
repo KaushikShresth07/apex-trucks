@@ -7,18 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "server": "node server/api.js",
-    "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "start": "NODE_ENV=production node server/api.js",
-    "pm2:start": "pm2 start ecosystem.config.js --env production",
-    "pm2:stop": "pm2 stop ecosystem.config.js",
-    "pm2:restart": "pm2 restart ecosystem.config.js",
-    "pm2:logs": "pm2 logs apex-trucks-api",
-    "pm2:status": "pm2 status"
+    "serve": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.2",
