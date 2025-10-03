@@ -1,7 +1,7 @@
-import { LocalTruckStorage } from './localTruckStorage';
+import { RealFileTruckStorage } from './realFileTruckStorage';
 
-// Initialize local storage
-LocalTruckStorage.init();
+// Initialize real file storage
+RealFileTruckStorage.init();
 
 // Mock user data
 const mockUser = {
@@ -15,8 +15,8 @@ const mockUser = {
 let currentUser = null;
 let isAuthenticated = false;
 
-// Truck entity using LocalTruckStorage (replaces hard-coded mock data)
-export const Truck = LocalTruckStorage;
+// Truck entity using REAL filesystem operations (deletes actual files)
+export const Truck = RealFileTruckStorage;
 
 // Mock User authentication
 export const User = {
