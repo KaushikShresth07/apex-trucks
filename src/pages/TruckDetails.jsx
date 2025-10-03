@@ -440,12 +440,6 @@ export default function TruckDetails() {
                         Call {truck.contact_phone}
                     </Button>
                  </a>
-                 <a href={`mailto:${truck.contact_email}`} className="w-full">
-                    <Button size="lg" variant="outline" className="w-full border-2 rounded-xl py-6 text-base font-semibold group">
-                        <Mail className="w-5 h-5 mr-3 group-hover:animate-pulse" />
-                        Email Dealer
-                    </Button>
-                 </a>
               </div>
             </div>
 

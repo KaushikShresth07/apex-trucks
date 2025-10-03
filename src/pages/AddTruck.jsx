@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Truck } from "@/api/entities";
 import { User } from "@/api/entities";
-import { UploadFile, InvokeLLM } from "@/api/integrations";
+import { UploadFile, UpdateImageTruckId } from "@/api/imageUpload";
+import { InvokeLLM } from "@/api/integrations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -233,10 +234,18 @@ export default function AddTruck() {
 
     try {
       if (isEditMode) {
-        await Truck.update(truckId, dataToSubmit);
+        const updatedTruck = await Truck.update(truckId, dataToSubmit);
+        // Update image truck ID if there are uploaded images
+        if (images.length > 0) {
+          await UpdateImageTruckId(truckId, images);
+        }
         navigate(createPageUrl(`TruckDetails?id=${truckId}`));
       } else {
-        await Truck.create(dataToSubmit);
+        const newTruck = await Truck.create(dataToSubmit);
+        // Update uploaded images to include the new truck ID
+        if (images.length > 0) {
+          await UpdateImageTruckId(newTruck.id, images);
+        }
         navigate(createPageUrl("TruckGallery"));
       }
     } catch (error) {

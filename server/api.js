@@ -6,12 +6,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Convert project root relative path to absolute path
 const DATA_DIR = path.resolve(__dirname, '../data');
@@ -21,6 +23,35 @@ const IMAGES_DIR = path.join(TRUCKS_DIR, 'images');
 app.use(cors());
 app.use(express.json());
 app.use('/data', express.static(path.join(__dirname, '../data')));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    await ensureDirectories();
+    cb(null, IMAGES_DIR);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const extension = path.extname(file.originalname);
+    const filename = `upload_${timestamp}${extension}`;
+    cb(null, filename);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
 
 // Ensure directories exist
 async function ensureDirectories() {
@@ -228,18 +259,109 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
+// Image upload endpoint
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    const fileName = req.file.filename;
+    const truckId = req.body.truckId || 'temp';
+    
+    console.log(`✅ Image uploaded: ${fileName} for truck ${truckId}`);
+    console.log(`📁 Saved to: ${IMAGES_DIR}/${fileName}`);
+    
+    res.json({
+      success: true,
+      fileName: fileName,
+      filePath: `/data/trucks/images/${fileName}`,
+      truckId: truckId,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+  } catch (error) {
+    console.error('❌ Image upload error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update image truck ID endpoint
+app.put('/api/images/update-truck-id', async (req, res) => {
+  try {
+    const { truckId, imageUrls } = req.body;
+    
+    // Rename uploaded images to include truck ID and collect new URLs
+    const updatedImageUrls = [];
+    
+    for (const imageUrl of imageUrls) {
+      if (imageUrl.includes('upload_') && imageUrl.includes('localhost:3001')) {
+        const fileName = path.basename(imageUrl);
+        const newFileName = fileName.replace('upload_', `truck_${truckId}_`);
+        
+        const oldPath = path.join(IMAGES_DIR, fileName);
+        const newPath = path.join(IMAGES_DIR, newFileName);
+        
+        try {
+          await fs.rename(oldPath, newPath);
+          console.log(`✅ Renamed image: ${fileName} → ${newFileName}`);
+          
+          // Add the new URL to the list
+          const newUrl = `http://localhost:3001/data/trucks/images/${newFileName}`;
+          updatedImageUrls.push(newUrl);
+        } catch (error) {
+          console.error(`❌ Failed to rename image ${fileName}:`, error);
+          updatedImageUrls.push(imageUrl); // Keep original if rename fails
+        }
+      } else {
+        updatedImageUrls.push(imageUrl); // Keep non-upload URLs as-is
+      }
+    }
+    
+    // Update the truck's JSON file with the new image URLs
+    if (updatedImageUrls.length > 0) {
+      try {
+        const truckFilePath = path.join(TRUCKS_DIR, `truck_${truckId}.json`);
+        const truckData = await fs.readFile(truckFilePath, 'utf-8');
+        const truck = JSON.parse(truckData);
+        
+        truck.images = updatedImageUrls;
+        
+        await fs.writeFile(truckFilePath, JSON.stringify(truck, null, 2), 'utf-8');
+        console.log(`✅ Updated truck ${truckId} with new image URLs`);
+      } catch (error) {
+        console.error(`❌ Failed to update truck ${truckId} image URLs:`, error);
+      }
+    }
+    
+    res.json({ success: true, updatedUrls: updatedImageUrls });
+  } catch (error) {
+    console.error('❌ Error updating image truck ID:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Truck API Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Truck API Server running on http://0.0.0.0:${PORT}`);
   console.log(`📁 Serving files from: ${DATA_DIR}`);
   console.log(`📂 Trucks directory: ${TRUCKS_DIR}`);
   console.log(`🖼️ Images directory: ${IMAGES_DIR}`);
-  console.log('\nAvailable endpoints:');
+  console.log(`🌍 Environment: ${NODE_ENV}`);
+  
+  if (NODE_ENV === 'production') {
+    console.log('\n✅ Production mode - API endpoints available:');
+  } else {
+    console.log('\n🔧 Development mode - Available endpoints:');
+  }
+  
   console.log(`GET    /api/trucks          # List all trucks`);
   console.log(`GET    /api/trucks/:id     # Get single truck`);
   console.log(`POST   /api/trucks         # Create new truck`);
   console.log(`PUT    /api/trucks/:id     # Update truck`);
   console.log(`DELETE /api/trucks/:id     # Delete truck (REAL FILE DELETION)`);
+  console.log(`POST   /api/upload         # Upload image file`);
+  console.log(`PUT    /api/images/update-truck-id # Update image truck ID`);
   console.log(`GET    /api/status         # Server status`);
 });
 
