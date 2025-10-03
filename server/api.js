@@ -237,8 +237,11 @@ app.post('/api/trucks', async (req, res) => {
     
     const newTruck = {
       id: generateId(),
+      status: "available",
+      images: [],
+      features: [],
+      imperial_inspected: false,
       ...req.body,
-      status: req.body.status || "available",
       created_date: new Date().toISOString(),
       source: "admin_created"
     };
