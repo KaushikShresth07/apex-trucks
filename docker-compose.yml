@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  apex-trucks:
+    build: .
+    ports:
+      - "80:80"
+      - "3001:3001"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    restart: unless-stopped
+    networks:
+      - apex-network
+
+networks:
+  apex-network:
+    driver: bridge
+
+volumes:
+  apex_data:
+  apex_logs:
