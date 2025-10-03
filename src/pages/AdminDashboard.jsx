@@ -2,16 +2,18 @@
 import React, { useState, useEffect } from "react";
 import { Truck } from "@/api/entities";
 import { User } from "@/api/entities";
+import { AdminUtils } from "@/api/adminUtils";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2 } from "lucide-react";
+import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2, Download, Upload, RefreshCw, CheckCircle } from "lucide-react";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export default function AdminDashboard() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTruck, setEditingTruck] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const [adminStats, setAdminStats] = useState(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   useEffect(() => {
     const checkUserAndFetchData = async () => {
@@ -32,6 +36,7 @@ export default function AdminDashboard() {
         }
         setCurrentUser(user);
         await fetchTrucks();
+        await loadAdminStats();
       } catch (e) {
         navigate(createPageUrl("TruckGallery"));
       } finally {
@@ -44,6 +49,55 @@ export default function AdminDashboard() {
   const fetchTrucks = async () => {
     const allTrucks = await Truck.list("-created_date");
     setTrucks(allTrucks);
+  };
+
+  const loadAdminStats = async () => {
+    setIsLoadingStats(true);
+    try {
+      const stats = await AdminUtils.getStorageStats();
+      setAdminStats(stats);
+    } catch (error) {
+      console.error('Failed to load admin stats:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  const handleExportAll = async () => {
+    try {
+      await AdminUtils.exportAllTrucks();
+      alert('Truck data exported successfully!');
+    } catch (error) {
+      alert(`Export failed: ${error.message}`);
+    }
+  };
+
+  const handleImportFile = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const result = await AdminUtils.importTrucks(file);
+      alert(`Import successful! ${result.importedCount || 'Unknown'} trucks imported.`);
+      await fetchTrucks(); // Refresh the truck list
+    } catch (error) {
+      alert(`Import failed: ${error.message}`);
+    }
+    // Reset the input
+    event.target.value = '';
+  };
+
+  const handleValidateData = async () => {
+    try {
+      const result = await AdminUtils.validateDataIntegrity();
+      if (result.issuesCount === 0) {
+        alert(`Data validation passed! ${result.truckCount} trucks validated successfully.`);
+      } else {
+        alert(`Data validation found ${result.issuesCount} issues:\n${result.issues.join('\n')}`);
+      }
+    } catch (error) {
+      alert(`Validation failed: ${error.message}`);
+    }
   };
 
   const handleEditClick = (truck) => {
@@ -124,6 +178,98 @@ export default function AdminDashboard() {
                 <p className="text-sm text-gray-500">Available</p>
                 <p className="text-2xl font-bold text-green-600">{trucks.filter(t => t.status === 'available').length}</p>
             </div>
+        </div>
+      </div>
+
+      {/* Admin Utilities Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Tools</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Card className="p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Storage Health</p>
+                  <p className="text-lg font-semibold text-green-600">Healthy</p>
+                </div>
+                <BarChart2 className="w-8 h-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Last Backup</p>
+                  <p className="text-sm font-semibold text-blue-600">
+                    {adminStats?.lastBackup ? new Date(adminStats.lastBackup).toLocaleDateString() : 'Never'}
+                  </p>
+                </div>
+                <ShieldCheck className="w-8 h-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Storage Size</p>
+                  <p className="text-sm font-semibold text-purple-600">
+                    {adminStats?.storageSize ? `${Math.round(adminStats.storageSize / 1024)} KB` : 'Loading...'}
+                  </p>
+                </div>
+                <List className="w-8 h-8 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Data Integrity</p>
+                  <p className="text-sm font-semibold text-orange-600">Check</p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex gap-4 flex-wrap">
+          <Button onClick={handleExportAll} className="bg-blue-600 hover:bg-blue-700">
+            <Download className="w-4 h-4 mr-2" />
+            Export All Trucks
+          </Button>
+          
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleImportFile}
+            className="hidden"
+            id="import-file"
+          />
+          <Button onClick={() => document.getElementById('import-file').click()} 
+                  className="bg-green-600 hover:bg-green-700">
+            <Upload className="w-4 h-4 mr-2" />
+            Import Trucks
+          </Button>
+          
+          <Button onClick={handleValidateData} variant="outline">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Validate Data
+          </Button>
+          
+          <Button onClick={loadAdminStats} variant="outline" disabled={isLoadingStats}>
+            {isLoadingStats ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            Refresh Stats
+          </Button>
         </div>
       </div>
 

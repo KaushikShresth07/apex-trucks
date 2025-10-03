@@ -1,0 +1,25 @@
+{
+  "trucks": [
+    {
+      "id": "1",
+      "make": "Peterbilt",
+      "model": "579",
+      "year": 2019,
+      "price": 85000,
+      "mileage": 450000,
+      "condition": "excellent",
+      "created_date": "2025-10-03T18:29:15.269Z"
+    },
+    {
+      "id": "2",
+      "make": "Freightliner",
+      "model": "Cascadia",
+      "year": 2020,
+      "price": 95000,
+      "mileage": 380000,
+      "condition": "excellent",
+      "created_date": "2025-10-03T18:29:15.270Z"
+    }
+  ],
+  "lastUpdated": "2025-10-03T18:29:15.288Z"
+}
