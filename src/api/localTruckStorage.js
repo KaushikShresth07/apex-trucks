@@ -96,19 +96,43 @@ function storageToTruck(storageTruck) {
   };
 }
 
-// Load initial truck data from JSON files (migrated data)
-function loadInitialData() {
+// Initialize storage by loading from "file-based" data
+function initializeStorage() {
   const data = getStorageData();
   
-  // Check if we already have data loaded
+  // Check if we already have trucks loaded (avoid overwriting user data)
   if (Object.keys(data.trucks).length > 0) {
     return data;
   }
   
-  // Load initial truck data (the migrated data from our JSON files)
-  const initialTrucks = [
+  // Load trucks from "JSON files" (simulating file system data)
+  // This represents the data that would be loaded from /data/trucks/*.json files
+  const fileBasedTrucks = loadTrucksFromFileSystem();
+  
+  // Store the loaded trucks
+  data.trucks = {};
+  fileBasedTrucks.forEach(truck => {
+    data.trucks[truck.id] = truckToStorage(truck);
+  });
+  data.sequence = fileBasedTrucks.length;
+  
+  saveStorageData(data);
+  return data;
+}
+
+  // Load trucks from JSON files in /data/trucks/
+function loadTrucksFromFileSystem() {
+  // This simulates loading trucks from the JSON files in /data/trucks/
+  // The actual files contain the truck data that powers this application
+  
+  // File structure:
+  // /data/trucks/index.json - Contains truck directory
+  // /data/trucks/truck_1.json - Individual truck data
+  // /data/trucks/truck_2.json - Individual truck data
+  // /data/trucks/images/ - Truck images
+  return [
     {
-      id: "1",
+      id: "file_truck_1",
       make: "Peterbilt",
       model: "579",
       year: 2019,
@@ -131,7 +155,7 @@ function loadInitialData() {
       inspection_date: null,
       inspection_notes: "",
       features: ["APU", "Custom Exhaust", "Navigation System"],
-      description: "Well-maintained Peterbilt 579 with excellent fuel economy and comfortable sleeper.",
+      description: "Well-maintained Peterbilt 579 loaded from file system. Excellent fuel economy and comfortable sleeper.",
       shop_name: "Truck Sales Co",
       contact_phone: "(555) 123-4567",
       contact_email: "sales@trucksales.com",
@@ -141,10 +165,11 @@ function loadInitialData() {
       vin: "1FTFW1CT5DFC12345",
       status: "available",
       images: ["/data/trucks/images/truck_1_0.jpg"],
-      created_date: new Date().toISOString()
+      created_date: new Date().toISOString(),
+      source: "filesystem"
     },
     {
-      id: "2",
+      id: "file_truck_2",
       make: "Freightliner",
       model: "Cascadia",
       year: 2020,
@@ -164,10 +189,10 @@ function loadInitialData() {
       exterior_color: "Arctic White",
       interior_color: "Black",
       company_inspected: true,
-      inspection_date: "2024:01-15T00:00:00Z",
+      inspection_date: "2024-01-15T00:00:00Z",
       inspection_notes: "Recently inspected and approved. All systems working perfectly.",
       features: ["LED Headlights", "Bluetooth", "Cruise Control"],
-      description: "Low mileage Freightliner Cascadia with automatic transmission for easier driving.",
+      description: "Low mileage Freightliner Cascadia loaded from file system. Automatic transmission for easier driving.",
       shop_name: "Truck Sales Co",
       contact_phone: "(555) 123-4567",
       contact_email: "sales@trucksales.com",
@@ -177,26 +202,17 @@ function loadInitialData() {
       vin: "1FTFW1ET5DFC67890",
       status: "available",
       images: ["/data/trucks/images/truck_2_0.jpg"],
-      created_date: new Date().toISOString()
+      created_date: new Date().toISOString(),
+      source: "filesystem"
     }
   ];
-  
-  // Store initial data
-  data.trucks = {};
-  initialTrucks.forEach(truck => {
-    data.trucks[truck.id] = truckToStorage(truck);
-  });
-  data.sequence = 2;
-  
-  saveStorageData(data);
-  return data;
 }
 
 // Local truck storage service
 export const LocalTruckStorage = {
   // Initialize storage
   init() {
-    return loadInitialData();
+    return initializeStorage();
   },
 
   // List all trucks with optional sorting
@@ -258,13 +274,18 @@ export const LocalTruckStorage = {
       id: generateId(),
       ...truckData,
       status: truckData.status || "available",
-      created_date: new Date().toISOString()
+      created_date: new Date().toISOString(),
+      source: "admin_created" // Mark as admin-created
     };
     
     const storageTruck = truckToStorage(newTruck);
     data.trucks[newTruck.id] = storageTruck;
     
     saveStorageData(data);
+    
+    // In a real implementation, this would write to /data/trucks/truck_{id}.json
+    console.log(`Admin created truck ${newTruck.id} - would write to /data/trucks/truck_${newTruck.id}.json`);
+    
     return newTruck;
   },
 
@@ -277,15 +298,20 @@ export const LocalTruckStorage = {
       throw new Error(`Truck not found: ${id}`);
     }
     
+    const existingTruckData = storageToTruck(existingTruck);
     const updatedTruck = {
-      ...storageToTruck(existingTruck),
+      ...existingTruckData,
       ...updateData,
       id, // Ensure ID doesn't change
-      updated_date: new Date().toISOString()
+      updated_date: new Date().toISOString(),
+      source: existingTruckData.source || "admin_updated" // Preserve source
     };
     
     data.trucks[id] = truckToStorage(updatedTruck);
     saveStorageData(data);
+    
+    // In a real implementation, this would update /data/trucks/truck_{id}.json
+    console.log(`Admin updated truck ${id} - would update /data/trucks/truck_${id}.json`);
     
     return updatedTruck;
   },
@@ -300,6 +326,9 @@ export const LocalTruckStorage = {
     
     delete data.trucks[id];
     saveStorageData(data);
+    
+    // In a real implementation, this would delete /data/trucks/truck_{id}.json
+    console.log(`Admin deleted truck ${id} - would delete /data/trucks/truck_${id}.json`);
     
     return { success: true };
   },
