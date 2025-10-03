@@ -1,7 +1,7 @@
 // Real file upload service for truck images
 // This service uploads images to the backend server and saves them to /data/trucks/images/
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 // Upload file to server
 export const UploadFile = async ({ file }) => {
@@ -27,7 +27,7 @@ export const UploadFile = async ({ file }) => {
     console.log(`📁 Saved to: /data/trucks/images/${result.fileName}`);
     
     return {
-      file_url: `http://localhost:3001/data/trucks/images/${result.fileName}`,
+      file_url: `/data/trucks/images/${result.fileName}`,
       file_name: result.fileName,
       file_size: file.size,
       upload_date: new Date().toISOString(),

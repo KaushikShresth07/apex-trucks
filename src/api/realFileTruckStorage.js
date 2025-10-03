@@ -1,7 +1,7 @@
 // Real filesystem-based truck storage using HTTP API
 // This service performs actual file operations on the /data/trucks/ folder
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 // Generate unique ID
 function generateId() {
