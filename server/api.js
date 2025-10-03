@@ -69,12 +69,12 @@ async function getAllTruckIds() {
   await ensureDirectories();
   
   try {
-    const files = await fs.readdir(TRUCKS_DIR);
-    return files
-      .filter(file => file.startsWith('truck_') && file.endsWith('.json'))
-      .map(file => file.replace(/^truck_/, '').replace(/\.json$/, ''));
+    const indexFilePath = path.join(TRUCKS_DIR, 'index.json');
+    const data = await fs.readFile(indexFilePath, 'utf-8');
+    const indexData = JSON.parse(data);
+    return indexData.trucks.map(truck => truck.id);
   } catch (error) {
-    console.error('Error reading trucks directory:', error);
+    console.error('Error reading truck index:', error);
     return [];
   }
 }
@@ -82,9 +82,14 @@ async function getAllTruckIds() {
 // Read a single truck file
 async function readTruckFile(id) {
   try {
-    const filePath = path.join(TRUCKS_DIR, `truck_${id}.json`);
-    const data = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(data);
+    const indexFilePath = path.join(TRUCKS_DIR, 'index.json');
+    const data = await fs.readFile(indexFilePath, 'utf-8');
+    const indexData = JSON.parse(data);
+    const truck = indexData.trucks.find(t => t.id === id);
+    if (!truck) {
+      throw new Error(`Truck not found: ${id}`);
+    }
+    return truck;
   } catch (error) {
     throw new Error(`Truck not found: ${id}`);
   }
@@ -94,17 +99,47 @@ async function readTruckFile(id) {
 async function writeTruckFile(truck) {
   await ensureDirectories();
   
-  const filePath = path.join(TRUCKS_DIR, `truck_${truck.id}.json`);
-  await fs.writeFile(filePath, JSON.stringify(truck, null, 2), 'utf-8');
+  try {
+    const indexFilePath = path.join(TRUCKS_DIR, 'index.json');
+    let indexData;
+    
+    try {
+      const data = await fs.readFile(indexFilePath, 'utf-8');
+      indexData = JSON.parse(data);
+    } catch (error) {
+      // Create new index.json if it doesn't exist
+      indexData = { trucks: [], lastUpdated: new Date().toISOString() };
+    }
+    
+    // Update or add truck
+    const existingIndex = indexData.trucks.findIndex(t => t.id === truck.id);
+    if (existingIndex >= 0) {
+      indexData.trucks[existingIndex] = truck;
+    } else {
+      indexData.trucks.push(truck);
+    }
+    
+    indexData.lastUpdated = new Date().toISOString();
+    await fs.writeFile(indexFilePath, JSON.stringify(indexData, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Error writing truck file:', error);
+    throw error;
+  }
 }
 
 // Delete a truck file and its images
 async function deleteTruckFile(id) {
-  const filePath = path.join(TRUCKS_DIR, `truck_${id}.json`);
-  
   try {
-    await fs.unlink(filePath);
-    console.log(`✅ DELETED: /data/trucks/truck_${id}.json`);
+    const indexFilePath = path.join(TRUCKS_DIR, 'index.json');
+    const data = await fs.readFile(indexFilePath, 'utf-8');
+    const indexData = JSON.parse(data);
+    
+    // Remove truck from index
+    indexData.trucks = indexData.trucks.filter(t => t.id !== id);
+    indexData.lastUpdated = new Date().toISOString();
+    await fs.writeFile(indexFilePath, JSON.stringify(indexData, null, 2), 'utf-8');
+    
+    console.log(`✅ DELETED: truck ${id} from index.json`);
     
     // Also remove associated images
     try {
