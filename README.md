@@ -272,4 +272,5 @@ This project is for demonstration purposes. Ensure proper licensing for producti
 
 ---
 
-**Note**: This implementation simulates file-based operations using localStorage. In a real production environment, this would be replaced with actual backend API calls and file system operations.
+**Note**: This implementation simulates file-based operations using localStorage. In a real production environment, this would be replaced with actual backend API calls and file system operations.#   a p e x - t r u c k s  
+ 
