@@ -434,30 +434,22 @@ export default function TruckDetails() {
             {/* Location Map */}
             {truck.latitude && truck.longitude && (
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <MapPin className="w-6 h-6 text-blue-600" />
-                  Location
-                </h3>
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Location</h3>
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                   <LocationMap
                     initialLocation={{ lat: truck.latitude, lng: truck.longitude }}
-                    mode="display"
+                    mode="view"
                     height="400px"
                     showControls={false}
-                    className="rounded-2xl"
+                    zoom={12}
                   />
-                  <div className="p-4 bg-gray-50 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <MapPin className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">{truck.location}</span>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {truck.latitude.toFixed(4)}, {truck.longitude.toFixed(4)}
-                      </div>
-                    </div>
-                  </div>
                 </div>
+                {truck.location && (
+                  <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-blue-500" />
+                    {truck.location}
+                  </p>
+                )}
               </div>
             )}
 

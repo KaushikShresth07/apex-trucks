@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Truck } from "@/api/entities";
 import { User } from "@/api/entities";
 import { UploadFile, UpdateImageTruckId } from "@/api/imageUpload";
+import { InvokeLLM } from "@/api/integrations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, X, Plus, ArrowLeft, Check, Shield, LogIn, Lock, MapPin, Loader2, CheckCircle, Save } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import LocationMap from "@/components/LocationMap";
 
 export default function AddTruck() {
   const navigate = useNavigate();
@@ -60,7 +60,8 @@ export default function AddTruck() {
   const [uploadingImages, setUploadingImages] = useState([]);
   const [newFeature, setNewFeature] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodeSuccess, setGeocodeSuccess] = useState(false);
 
   useEffect(() => {
     const fetchUserAndTruck = async () => {
@@ -98,7 +99,7 @@ export default function AddTruck() {
           });
           setImages(truckData.images || []);
           if (truckData.latitude && truckData.longitude) {
-            setSelectedLocation({ lat: truckData.latitude, lng: truckData.longitude });
+            setGeocodeSuccess(true);
           }
         }
       } catch (e) {
@@ -125,17 +126,50 @@ export default function AddTruck() {
       ...prev,
       [field]: value
     }));
+    if (field === 'location') {
+      setGeocodeSuccess(false);
+      setFormData(prev => ({ ...prev, latitude: null, longitude: null }));
+    }
   };
 
-  const handleLocationChange = (location) => {
-    setSelectedLocation(location);
-    setFormData(prev => ({
-      ...prev,
-      latitude: location.lat,
-      longitude: location.lng
-    }));
+  const handleGeocodeLocation = async () => {
+    if (!formData.location) {
+      alert("Please enter a location first.");
+      return;
+    }
+    setIsGeocoding(true);
+    setGeocodeSuccess(false);
+    try {
+      const response = await InvokeLLM({
+        prompt: `Geocode this location and provide only the latitude and longitude: "${formData.location}"`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            latitude: { type: "number" },
+            longitude: { type: "number" }
+          },
+          required: ["latitude", "longitude"]
+        }
+      });
+      if (response.latitude && response.longitude) {
+        setFormData(prev => ({
+          ...prev,
+          latitude: response.latitude,
+          longitude: response.longitude
+        }));
+        setGeocodeSuccess(true);
+      } else {
+        throw new Error("Invalid response from geocoding service.");
+      }
+    } catch (error) {
+      console.error("Geocoding failed:", error);
+      alert("Could not find coordinates for this location. Please try a different format (e.g., 'City, State, Country').");
+      setFormData(prev => ({ ...prev, latitude: null, longitude: null }));
+    } finally {
+      setIsGeocoding(false);
+    }
   };
-
 
   const handleImageUpload = async (files) => {
     const fileArray = Array.from(files);
@@ -179,8 +213,8 @@ export default function AddTruck() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.location && (!formData.latitude || !formData.longitude)) {
-      if (!window.confirm("Location has not been set on the map. Do you want to continue anyway?")) {
+    if (formData.location && (!formData.latitude || !formData.longitude) && !geocodeSuccess) {
+      if (!window.confirm("Location has not been verified on the map. Do you want to continue anyway?")) {
         return;
       }
     }
@@ -725,40 +759,10 @@ export default function AddTruck() {
             </CardContent>
           </Card>
 
-
-          {/* Location Map */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-blue-600" />
-                Set Location on Map
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LocationMap
-                initialLocation={selectedLocation}
-                onLocationChange={handleLocationChange}
-                mode="select"
-                height="400px"
-                showControls={true}
-              />
-              {selectedLocation && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center text-green-800">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">
-                      Location set: {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Contact Information */}
           <Card className="border-0 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold">Contact Information</CardTitle>
+              <CardTitle className="text-xl font-semibold">Contact & Location</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -802,6 +806,31 @@ export default function AddTruck() {
                     onChange={(e) => handleInputChange("vin", e.target.value)}
                     placeholder="1FTFW1ET5DFC12345"
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="location">Location</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => handleInputChange("location", e.target.value)}
+                      placeholder="City, State, Country"
+                    />
+                    <Button type="button" variant="outline" onClick={handleGeocodeLocation} disabled={isGeocoding} className="w-48">
+                      {isGeocoding ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <MapPin className="w-4 h-4 mr-2" />
+                      )}
+                      Find on Map
+                    </Button>
+                  </div>
+                   {geocodeSuccess && (
+                      <div className="mt-2 flex items-center text-sm text-green-600">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Location verified on map!
+                      </div>
+                    )}
                 </div>
               </div>
             </CardContent>

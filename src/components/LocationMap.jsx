@@ -1,253 +1,140 @@
-import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { MapPin, Navigation, CheckCircle, AlertCircle } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icon issue with webpack
+// Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom marker icon for selected location
-const selectedIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Component to handle map clicks
-function MapClickHandler({ onLocationSelect }) {
+// Component to handle map click events
+function MapClickHandler({ onLocationSelect, mode }) {
+  const [position, setPosition] = useState(null);
+  
   useMapEvents({
-    click: (e) => {
-      const { lat, lng } = e.latlng;
-      onLocationSelect(lat, lng);
+    click(e) {
+      if (mode === 'select') {
+        const { lat, lng } = e.latlng;
+        setPosition([lat, lng]);
+        onLocationSelect({ lat, lng });
+      }
     },
   });
 
-  return null;
-}
-
-// Component to handle map center updates
-function MapCenterHandler({ center, onCenterChange }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom());
-    }
-  }, [center, map]);
-
-  useEffect(() => {
-    const handleMove = () => {
-      const currentCenter = map.getCenter();
-      onCenterChange(currentCenter.lat, currentCenter.lng);
-    };
-
-    map.on('moveend', handleMove);
-    return () => {
-      map.off('moveend', handleMove);
-    };
-  }, [map, onCenterChange]);
-
-  return null;
+  return position === null ? null : (
+    <Marker position={position}>
+      <Popup>
+        Selected Location<br />
+        Lat: {position[0].toFixed(6)}<br />
+        Lng: {position[1].toFixed(6)}
+      </Popup>
+    </Marker>
+  );
 }
 
 export default function LocationMap({ 
   initialLocation = null, 
-  onLocationChange, 
-  mode = "select", // "select" or "display"
-  height = "400px",
-  showControls = true,
-  className = ""
+  onLocationChange = () => {}, 
+  mode = 'view', // 'view' or 'select'
+  height = '400px',
+  showControls = false,
+  className = '',
+  zoom = 13
 }) {
+  const [mapCenter, setMapCenter] = useState([40.7128, -74.0060]); // Default to NYC
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
-  const [mapCenter, setMapCenter] = useState(
-    initialLocation ? [initialLocation.lat, initialLocation.lng] : [39.8283, -98.5795] // Center of USA
-  );
-  const [manualCoords, setManualCoords] = useState({
-    lat: initialLocation?.lat || "",
-    lng: initialLocation?.lng || ""
-  });
-  const [isValidCoords, setIsValidCoords] = useState(false);
 
-  // Update parent component when location changes
   useEffect(() => {
-    if (onLocationChange && selectedLocation) {
-      onLocationChange(selectedLocation);
+    if (initialLocation) {
+      setMapCenter([initialLocation.lat, initialLocation.lng]);
+      setSelectedLocation(initialLocation);
     }
-  }, [selectedLocation, onLocationChange]);
+  }, [initialLocation]);
 
-  // Validate coordinates
-  useEffect(() => {
-    const lat = parseFloat(manualCoords.lat);
-    const lng = parseFloat(manualCoords.lng);
-    const valid = !isNaN(lat) && !isNaN(lng) && 
-                  lat >= -90 && lat <= 90 && 
-                  lng >= -180 && lng <= 180;
-    setIsValidCoords(valid);
-  }, [manualCoords]);
-
-  const handleLocationSelect = (lat, lng) => {
-    if (mode === "select") {
-      const newLocation = { lat, lng };
-      setSelectedLocation(newLocation);
-      setManualCoords({ lat: lat.toFixed(6), lng: lng.toFixed(6) });
-    }
+  const handleLocationSelect = (location) => {
+    setSelectedLocation(location);
+    onLocationChange(location);
   };
 
-  const handleCenterChange = (lat, lng) => {
-    setMapCenter([lat, lng]);
-  };
+  const handleSearchLocation = (e) => {
+    e.preventDefault();
+    const query = e.target.search.value.trim();
+    if (!query) return;
 
-  const handleManualCoordsChange = (field, value) => {
-    setManualCoords(prev => ({ ...prev, [field]: value }));
-  };
-
-  const applyManualCoords = () => {
-    if (isValidCoords) {
-      const lat = parseFloat(manualCoords.lat);
-      const lng = parseFloat(manualCoords.lng);
-      const newLocation = { lat, lng };
-      setSelectedLocation(newLocation);
-      setMapCenter([lat, lng]);
-    }
-  };
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const newLocation = { lat, lng };
-          setSelectedLocation(newLocation);
-          setMapCenter([lat, lng]);
-          setManualCoords({ lat: lat.toFixed(6), lng: lng.toFixed(6) });
-        },
-        (error) => {
-          console.error("Error getting current location:", error);
-          alert("Unable to get your current location. Please enter coordinates manually or click on the map.");
+    // Simple geocoding using Nominatim (OpenStreetMap's geocoding service)
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const { lat, lon } = data[0];
+          const location = { lat: parseFloat(lat), lng: parseFloat(lon) };
+          setMapCenter([location.lat, location.lng]);
+          setSelectedLocation(location);
+          onLocationChange(location);
+        } else {
+          alert('Location not found. Please try a different search term.');
         }
-      );
-    } else {
-      alert("Geolocation is not supported by this browser.");
-    }
-  };
-
-  const formatCoords = (lat, lng) => {
-    const latDir = lat >= 0 ? 'N' : 'S';
-    const lngDir = lng >= 0 ? 'E' : 'W';
-    return `${Math.abs(lat).toFixed(4)}°${latDir}, ${Math.abs(lng).toFixed(4)}°${lngDir}`;
+      })
+      .catch(error => {
+        console.error('Geocoding error:', error);
+        alert('Error searching for location. Please try again.');
+      });
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {showControls && mode === "select" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-          <div className="space-y-2">
-            <Label htmlFor="manual-lat">Latitude</Label>
-            <Input
-              id="manual-lat"
-              type="number"
-              step="any"
-              value={manualCoords.lat}
-              onChange={(e) => handleManualCoordsChange("lat", e.target.value)}
-              placeholder="39.8283"
-              className={!isValidCoords && manualCoords.lat ? "border-red-300" : ""}
+    <div className={`location-map ${className}`}>
+      {showControls && mode === 'select' && (
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Location Controls</h4>
+          <form onSubmit={handleSearchLocation} className="flex gap-2">
+            <input
+              name="search"
+              type="text"
+              placeholder="Search for a location (e.g., New York, NY)"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="manual-lng">Longitude</Label>
-            <Input
-              id="manual-lng"
-              type="number"
-              step="any"
-              value={manualCoords.lng}
-              onChange={(e) => handleManualCoordsChange("lng", e.target.value)}
-              placeholder="-98.5795"
-              className={!isValidCoords && manualCoords.lng ? "border-red-300" : ""}
-            />
-          </div>
-          <div className="md:col-span-2 flex gap-2">
-            <Button 
-              onClick={applyManualCoords} 
-              disabled={!isValidCoords}
-              size="sm"
-              className="flex-1"
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <MapPin className="w-4 h-4 mr-2" />
-              Apply Coordinates
-            </Button>
-            <Button 
-              onClick={getCurrentLocation} 
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
-              <Navigation className="w-4 h-4 mr-2" />
-              Use My Location
-            </Button>
-          </div>
-          {!isValidCoords && (manualCoords.lat || manualCoords.lng) && (
-            <div className="md:col-span-2 flex items-center text-red-600 text-sm">
-              <AlertCircle className="w-4 h-4 mr-2" />
-              Please enter valid coordinates (Lat: -90 to 90, Lng: -180 to 180)
-            </div>
-          )}
+              Search
+            </button>
+          </form>
+          <p className="text-xs text-gray-500 mt-2">
+            💡 Click anywhere on the map to set the location, or search for a specific place.
+          </p>
         </div>
       )}
 
       <div 
-        className="rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+        className="border border-gray-200 rounded-lg overflow-hidden"
         style={{ height }}
       >
         <MapContainer
           center={mapCenter}
-          zoom={selectedLocation ? 10 : 4}
+          zoom={zoom}
+          style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
-          style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
-          {mode === "select" && (
-            <>
-              <MapClickHandler onLocationSelect={handleLocationSelect} />
-              <MapCenterHandler center={mapCenter} onCenterChange={handleCenterChange} />
-            </>
+          {mode === 'select' && (
+            <MapClickHandler onLocationSelect={handleLocationSelect} mode={mode} />
           )}
-
-          {selectedLocation && (
-            <Marker 
-              position={[selectedLocation.lat, selectedLocation.lng]}
-              icon={selectedIcon}
-            >
+          
+          {mode === 'view' && selectedLocation && (
+            <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
               <Popup>
-                <div className="text-center">
-                  <div className="font-semibold text-sm mb-1">Selected Location</div>
-                  <div className="text-xs text-gray-600">
-                    {formatCoords(selectedLocation.lat, selectedLocation.lng)}
-                  </div>
-                  {mode === "select" && (
-                    <div className="mt-2 flex items-center text-green-600 text-xs">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Click to change location
-                    </div>
-                  )}
-                </div>
+                Truck Location<br />
+                Lat: {selectedLocation.lat.toFixed(6)}<br />
+                Lng: {selectedLocation.lng.toFixed(6)}
               </Popup>
             </Marker>
           )}
@@ -255,34 +142,12 @@ export default function LocationMap({
       </div>
 
       {selectedLocation && (
-        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center text-green-800">
-            <CheckCircle className="w-4 h-4 mr-2" />
-            <span className="text-sm font-medium">
-              Location: {formatCoords(selectedLocation.lat, selectedLocation.lng)}
-            </span>
-          </div>
-          {mode === "select" && (
-            <Button
-              onClick={() => {
-                setSelectedLocation(null);
-                setManualCoords({ lat: "", lng: "" });
-              }}
-              variant="outline"
-              size="sm"
-              className="text-red-600 border-red-300 hover:bg-red-50"
-            >
-              Clear Location
-            </Button>
-          )}
-        </div>
-      )}
-
-      {mode === "select" && !selectedLocation && (
-        <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-          <p className="text-blue-800 font-medium">Click on the map to select a location</p>
-          <p className="text-blue-600 text-sm mt-1">Or enter coordinates manually above</p>
+        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Selected Location:</strong><br />
+            Latitude: {selectedLocation.lat.toFixed(6)}<br />
+            Longitude: {selectedLocation.lng.toFixed(6)}
+          </p>
         </div>
       )}
     </div>
