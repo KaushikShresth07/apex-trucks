@@ -10,19 +10,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Dynamically import react-leaflet components to avoid SSR issues
-const MapComponents = React.lazy(() =>
-  import('react-leaflet').then(module => ({
-    default: {
-      MapContainer: module.MapContainer,
-      TileLayer: module.TileLayer,
-      Marker: module.Marker,
-      Popup: module.Popup,
-      useMapEvents: module.useMapEvents,
-    }
-  }))
-);
-
 // Geocoding service for address-to-coordinates conversion
 const geocodeAddress = async (address) => {
   try {
@@ -58,17 +45,6 @@ const reverseGeocode = async (lat, lng) => {
   }
 };
 
-function MapClickHandler({ onLocationSelect, mode, selectedLocation }) {
-  const map = MapComponents.default.useMapEvents({
-    click: (e) => {
-      if (mode === 'select') {
-        onLocationSelect({ lat: e.latlng.lat, lng: e.latlng.lng });
-      }
-    },
-  });
-  return null;
-}
-
 export default function LocationMap({ 
   initialLocation = null, 
   onLocationChange = () => {}, 
@@ -80,12 +56,39 @@ export default function LocationMap({
   enableGeocoding = true,
   showAddressInput = true
 }) {
+  const [mapComponents, setMapComponents] = useState(null);
+  const [isMapLoading, setIsMapLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
   const [mapCenter, setMapCenter] = useState(initialLocation ? [initialLocation.lat, initialLocation.lng] : [40.7128, -74.0060]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchAddress, setSearchAddress] = useState('');
   const [displayAddress, setDisplayAddress] = useState('');
   const mapRef = useRef();
+  const mapInstanceRef = useRef();
+
+  useEffect(() => {
+    // Only load map components on client-side to avoid SSR issues
+    if (typeof window !== 'undefined') {
+      const loadMapComponents = async () => {
+        try {
+          const { MapContainer, TileLayer, Marker, Popup } = await import('react-leaflet');
+          
+          setMapComponents({
+            MapContainer,
+            TileLayer,
+            Marker,
+            Popup
+          });
+          setIsMapLoading(false);
+        } catch (error) {
+          console.error('Failed to load map components:', error);
+          setIsMapLoading(false);
+        }
+      };
+      
+      loadMapComponents();
+    }
+  }, []);
 
   useEffect(() => {
     if (initialLocation) {
@@ -115,8 +118,8 @@ export default function LocationMap({
       onLocationChange(location);
     }
 
-    if (mapRef.current) {
-      mapRef.current.setView([location.lat, location.lng], zoom);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([location.lat, location.lng], zoom);
     }
   };
 
@@ -135,8 +138,8 @@ export default function LocationMap({
       setDisplayAddress(result.address);
       onLocationChange({ ...location, address: result.address });
       
-      if (mapRef.current) {
-        mapRef.current.setView([location.lat, location.lng], zoom);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([location.lat, location.lng], zoom);
       }
     } else {
       alert('Location not found. Please try a different search term.');
@@ -149,10 +152,38 @@ export default function LocationMap({
     setDisplayAddress('');
     setSearchAddress('');
     onLocationChange(null);
-    if (mapRef.current) {
-      mapRef.current.setView(mapCenter, zoom);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView(mapCenter, zoom);
     }
   };
+
+  const handleMapCreated = (mapInstance) => {
+    mapInstanceRef.current = mapInstance;
+    mapRef.current = mapInstance;
+    
+    // Add click handler for select/edit modes
+    if (mode === 'select' || mode === 'edit') {
+      mapInstance.on('click', (e) => {
+        handleLocationSelect({ lat: e.latlng.lat, lng: e.latlng.lng });
+      });
+    }
+  };
+
+  // Show loading state while map components load
+  if (isMapLoading || !mapComponents) {
+    return (
+      <div className={`location-map ${className}`} style={{ height }}>
+        <div className="flex items-center justify-center h-full bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="text-center">
+            <div className="animate-spin w-10 h-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading map...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Marker, Popup } = mapComponents;
 
   return (
     <div className={`location-map ${className}`}>
@@ -165,7 +196,7 @@ export default function LocationMap({
               value={searchAddress}
               onChange={(e) => setSearchAddress(e.target.value)}
               placeholder="Search for a location (e.g., Sacramento, CA)"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
             />
             <button
@@ -193,76 +224,59 @@ export default function LocationMap({
       )}
 
       <div className="border border-gray-200 rounded-lg overflow-hidden" style={{ height }}>
-        <React.Suspense fallback={
-          <div className="flex items-center justify-center h-full bg-gray-50">
-            <div className="text-center">
-                <div className="animate-spin w-10 h-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading map...</p>
-            </div>
-          </div>
-        }>
-          <MapComponents.MapContainer
-            center={mapCenter}
-            zoom={zoom}
-            style={{ height: '100%', width: '100%' }}
-            scrollWheelZoom={true}
-            whenCreated={mapInstance => { mapRef.current = mapInstance }}
-          >
-            <MapComponents.TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+        <MapContainer
+          center={mapCenter}
+          zoom={zoom}
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom={true}
+          whenCreated={handleMapCreated}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-            {(mode === 'select' || mode === 'edit') && (
-              <MapClickHandler 
-                onLocationSelect={handleLocationSelect} 
-                mode={mode} 
-                selectedLocation={selectedLocation}
-              />
-            )}
+          {selectedLocation && (mode === 'view' || mode === 'edit') && (
+            <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
+              <Popup>
+                <div className="text-center">
+                  <strong>Truck Location</strong><br />
+                  {displayAddress || `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}<br />
+                  <small className="text-gray-500">
+                    Lat: {selectedLocation.lat.toFixed(6)}<br />
+                    Lng: {selectedLocation.lng.toFixed(6)}
+                  </small>
+                </div>
+              </Popup>
+            </Marker>
+          )}
 
-            {selectedLocation && (mode === 'view' || mode === 'edit') && (
-              <MapComponents.Marker position={[selectedLocation.lat, selectedLocation.lng]}>
-                <MapComponents.Popup>
-                  <div className="text-center">
-                    <strong>Truck Location</strong><br />
-                    {displayAddress || `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}<br />
-                    <small className="text-gray-500">
-                      Lat: {selectedLocation.lat.toFixed(6)}<br />
-                      Lng: {selectedLocation.lng.toFixed(6)}
-                    </small>
-                  </div>
-                </MapComponents.Popup>
-              </MapComponents.Marker>
-            )}
-
-            {(mode === 'select' || mode === 'edit') && selectedLocation && (
-              <MapComponents.Marker position={[selectedLocation.lat, selectedLocation.lng]}>
-                <MapComponents.Popup>
-                  <div className="text-center">
-                    <strong>Selected Location</strong><br />
-                    {displayAddress || `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}<br />
-                    <small className="text-gray-500">
-                      Lat: {selectedLocation.lat.toFixed(6)}<br />
-                      Lng: {selectedLocation.lng.toFixed(6)}
-                    </small>
-                    <br />
-                    <button
-                      onClick={() => {
-                        if (window.confirm('Remove this location?')) {
-                          resetLocation();
-                        }
-                      }}
-                      className="mt-2 px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </MapComponents.Popup>
-              </MapComponents.Marker>
-            )}
-          </MapComponents.MapContainer>
-        </React.Suspense>
+          {(mode === 'select' || mode === 'edit') && selectedLocation && (
+            <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
+              <Popup>
+                <div className="text-center">
+                  <strong>Selected Location</strong><br />
+                  {displayAddress || `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}<br />
+                  <small className="text-gray-500">
+                    Lat: {selectedLocation.lat.toFixed(6)}<br />
+                    Lng: {selectedLocation.lng.toFixed(6)}
+                  </small>
+                  <br />
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Remove this location?')) {
+                        resetLocation();
+                      }
+                    }}
+                    className="mt-2 px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          )}
+        </MapContainer>
       </div>
 
       {selectedLocation && showControls && (
