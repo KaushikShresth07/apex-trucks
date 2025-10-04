@@ -1,21 +1,7 @@
-
-import React, { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-
-// Fix for default marker icon issue with webpack
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
-});
-
 
 const formatPrice = (price) => {
   if (price == null) return "N/A";
@@ -27,9 +13,45 @@ const formatPrice = (price) => {
 };
 
 export default function TruckMap({ trucks }) {
+  const [mapComponents, setMapComponents] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
   const trucksWithLocation = trucks.filter(
     (truck) => truck.latitude != null && truck.longitude != null
   );
+
+  useEffect(() => {
+    // Only load map components on client-side to avoid SSR issues
+    if (typeof window !== 'undefined') {
+      const loadMapComponents = async () => {
+        try {
+          const { MapContainer, TileLayer, Marker, Popup } = await import('react-leaflet');
+          const L = await import('leaflet');
+          
+          // Fix for default markers in react-leaflet
+          delete L.default.Icon.Default.prototype._getIconUrl;
+          L.default.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          });
+
+          setMapComponents({
+            MapContainer,
+            TileLayer,
+            Marker,
+            Popup,
+            L: L.default
+          });
+          setMapLoaded(true);
+        } catch (error) {
+          console.error('Failed to load map components:', error);
+        }
+      };
+      
+      loadMapComponents();
+    }
+  }, []);
 
   if (trucksWithLocation.length === 0) {
     return (
@@ -47,6 +69,20 @@ export default function TruckMap({ trucks }) {
   const longitudes = trucksWithLocation.map(t => t.longitude);
   const centerLat = latitudes.reduce((a, b) => a + b, 0) / latitudes.length;
   const centerLon = longitudes.reduce((a, b) => a + b, 0) / longitudes.length;
+
+  // Show loading state while map components load
+  if (!mapLoaded || !mapComponents) {
+    return (
+      <div className="h-[600px] w-full rounded-3xl overflow-hidden shadow-2xl shadow-gray-200 border-4 border-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading interactive map...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Marker, Popup } = mapComponents;
 
   return (
     <div className="h-[600px] w-full rounded-3xl overflow-hidden shadow-2xl shadow-gray-200 border-4 border-white">
