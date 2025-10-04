@@ -33,8 +33,7 @@ const FadeIn = ({ children, delay = 0, duration = 600, className = "" }) => {
       >
         {children}
       </div>
-    );
-  };
+  );
 };
 
 export default FadeIn;
