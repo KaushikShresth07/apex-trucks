@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ const selectedIcon = new L.Icon({
 });
 
 // Component to handle map clicks
-function MapClickHandler({ onLocationSelect, selectedLocation }) {
+function MapClickHandler({ onLocationSelect }) {
   useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
@@ -40,7 +40,7 @@ function MapClickHandler({ onLocationSelect, selectedLocation }) {
 
 // Component to handle map center updates
 function MapCenterHandler({ center, onCenterChange }) {
-  const map = useMapEvents({});
+  const map = useMap();
   
   useEffect(() => {
     if (center) {
