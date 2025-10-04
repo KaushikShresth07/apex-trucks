@@ -98,11 +98,6 @@ export default function TruckGallery() {
         
         <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32">
           <div className="text-center max-w-5xl mx-auto">
-            <FadeIn delay={200}>
-              <div className="mb-8">
-                <ImperialLogo size="large" variant="full" className="justify-center" />
-              </div>
-            </FadeIn>
 
             <FadeIn delay={300}>
               <h1 className="text-6xl md:text-8xl font-bold mb-8 leading-tight">
