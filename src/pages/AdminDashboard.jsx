@@ -13,8 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2, Download, Upload, RefreshCw, CheckCircle, Trash2, MapPin } from "lucide-react";
-import LocationMap from "@/components/LocationMap";
+import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2, Download, Upload, RefreshCw, CheckCircle, Trash2 } from "lucide-react";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -29,7 +28,6 @@ export default function AdminDashboard() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [truckToDelete, setTruckToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(null);
 
   useEffect(() => {
     const checkUserAndFetchData = async () => {
@@ -114,7 +112,6 @@ export default function AdminDashboard() {
       condition: truck.condition || "good",
       location: truck.location || "",
     });
-    setSelectedLocation(truck.latitude && truck.longitude ? { lat: truck.latitude, lng: truck.longitude } : null);
     setIsEditDialogOpen(true);
   };
 
@@ -131,12 +128,9 @@ export default function AdminDashboard() {
         status: editFormData.status,
         condition: editFormData.condition,
         location: editFormData.location,
-        latitude: selectedLocation?.lat || null,
-        longitude: selectedLocation?.lng || null,
       });
       setIsEditDialogOpen(false);
       setEditingTruck(null);
-      setSelectedLocation(null);
       await fetchTrucks(); // Refresh data
     } catch (error) {
       console.error("Failed to update truck:", error);
@@ -144,9 +138,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLocationChange = (location) => {
-    setSelectedLocation(location);
-  };
 
   const handleDeleteClick = (truck) => {
     setTruckToDelete(truck);
@@ -417,24 +408,6 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            {/* Location Map */}
-            <div className="mt-4">
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-4 h-4 text-blue-600" />
-                <Label className="text-sm font-medium">Set Location on Map</Label>
-              </div>
-              <LocationMap
-                initialLocation={selectedLocation}
-                onLocationChange={handleLocationChange}
-                mode="select"
-                height="300px"
-                showControls={true}
-                className="border border-gray-200 rounded-lg"
-                zoom={10}
-                enableGeocoding={true}
-                showAddressInput={true}
-              />
-            </div>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">Cancel</Button>

@@ -7,7 +7,6 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Phone, Mail, CheckCircle, Tag, Settings, Gauge, Fuel, Calendar, Car, BedDouble, Users, Trash2, Loader2, Shield, CheckCircle2, Edit, Save, X } from "lucide-react";
-import LocationMap from "@/components/LocationMap";
 
 export default function TruckDetails() {
   const location = useLocation();
@@ -431,27 +430,21 @@ export default function TruckDetails() {
               <p className="text-gray-600 leading-relaxed text-base">{truck.description || "No description provided."}</p>
             </div>
 
-            {/* Location Map */}
-            {truck.latitude && truck.longitude && (
+            {/* Location Information */}
+            {truck.location && (
               <div className="mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Location</h3>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <LocationMap
-                    initialLocation={{ lat: truck.latitude, lng: truck.longitude }}
-                    mode="view"
-                    height="400px"
-                    showControls={false}
-                    zoom={12}
-                    enableGeocoding={false}
-                    showAddressInput={false}
-                  />
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <MapPin className="w-5 h-5 text-blue-500" />
+                    <span className="text-lg">{truck.location}</span>
+                  </div>
+                  {truck.latitude && truck.longitude && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Coordinates: {truck.latitude.toFixed(6)}, {truck.longitude.toFixed(6)}
+                    </p>
+                  )}
                 </div>
-                {truck.location && (
-                  <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-blue-500" />
-                    {truck.location}
-                  </p>
-                )}
               </div>
             )}
 

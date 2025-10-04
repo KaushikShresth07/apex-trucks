@@ -14,12 +14,4 @@ export default defineConfig({
     },
     extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json']
   },
-  optimizeDeps: {
-    include: ['leaflet', 'react-leaflet'],
-    esbuildOptions: {
-      loader: {
-        '.js': 'jsx',
-      },
-    },
-  },
 }) 

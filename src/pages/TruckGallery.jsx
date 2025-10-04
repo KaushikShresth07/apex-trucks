@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect } from "react";
 import { Truck } from "@/api/entities";
-import { Search, Filter, Sparkles, Map, List } from "lucide-react";
+import { Search, Filter, Sparkles, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import TruckCard from "../components/TruckCard";
 import TruckFilters from "../components/TruckFilters";
-import TruckMap from "../components/TruckMap";
 
 export default function TruckGallery() {
   const [trucks, setTrucks] = useState([]);
@@ -25,7 +24,7 @@ export default function TruckGallery() {
     fuelType: "all"
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'map'
+  const [viewMode, setViewMode] = useState("grid");
 
   useEffect(() => {
     loadTrucks();
@@ -189,24 +188,6 @@ export default function TruckGallery() {
                 </Badge>
               )}
             </Button>
-            <div className="bg-gray-100 p-1 rounded-full flex items-center">
-                <Button
-                    size="icon"
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    onClick={() => setViewMode('grid')}
-                    className="rounded-full"
-                >
-                    <List className="w-5 h-5" />
-                </Button>
-                <Button
-                    size="icon"
-                    variant={viewMode === 'map' ? 'default' : 'ghost'}
-                    onClick={() => setViewMode('map')}
-                    className="rounded-full"
-                >
-                    <Map className="w-5 h-5" />
-                </Button>
-            </div>
           </div>
         </div>
 
@@ -220,44 +201,38 @@ export default function TruckGallery() {
           </div>
         )}
 
-        {viewMode === 'grid' ? (
-          <>
-            {filteredTrucks.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-8">
-                  <Search className="w-12 h-12 text-blue-500" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">No trucks found</h3>
-                <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-                  Try adjusting your search terms or filters to find more trucks
-                </p>
-                <Button 
-                  onClick={() => {
-                    setSearchQuery("");
-                    // Clear all filters, including new ones
-                    setFilters({ make: "all", model: "all", year: "all", minPrice: "", maxPrice: "", condition: "all", fuelType: "all" });
-                  }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-8 py-3 font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300"
-                >
-                  Clear all filters
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredTrucks.map((truck, index) => (
-                  <div 
-                    key={truck.id} 
-                    className="animate-in slide-in-from-bottom-4 duration-500"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <TruckCard truck={truck} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
+        {filteredTrucks.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-8">
+              <Search className="w-12 h-12 text-blue-500" />
+            </div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">No trucks found</h3>
+            <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
+              Try adjusting your search terms or filters to find more trucks
+            </p>
+            <Button 
+              onClick={() => {
+                setSearchQuery("");
+                // Clear all filters, including new ones
+                setFilters({ make: "all", model: "all", year: "all", minPrice: "", maxPrice: "", condition: "all", fuelType: "all" });
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-8 py-3 font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300"
+            >
+              Clear all filters
+            </Button>
+          </div>
         ) : (
-          <TruckMap trucks={filteredTrucks} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredTrucks.map((truck, index) => (
+              <div 
+                key={truck.id} 
+                className="animate-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <TruckCard truck={truck} />
+              </div>
+            ))}
+          </div>
         )}
 
       </div>
