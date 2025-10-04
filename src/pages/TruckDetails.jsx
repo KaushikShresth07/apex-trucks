@@ -6,7 +6,7 @@ import { User } from "@/api/entities";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, Mail, CheckCircle, Tag, Settings, Gauge, Fuel, Calendar, Car, BedDouble, Users, Trash2, Loader2, Shield, CheckCircle2, Edit, Save, X } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, CheckCircle, Tag, Settings, Gauge, Fuel, Calendar, Car, BedDouble, Users, Trash2, Loader2, Shield, CheckCircle2, Edit, Save, X } from "lucide-react";
 
 export default function TruckDetails() {
   const location = useLocation();

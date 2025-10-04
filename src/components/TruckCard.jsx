@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapPin, Phone, Mail, Eye, Fuel, Settings, Gauge, Heart, ArrowRight, Calendar, Award, CheckCircle2, Shield } from "lucide-react";
+import { MapPin, Phone, Eye, Fuel, Settings, Gauge, Heart, ArrowRight, Calendar, Award, CheckCircle2, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -187,15 +187,6 @@ export default function TruckCard({ truck }) {
                 className="w-10 h-10 bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
                 <Phone className="w-4 h-4" />
-              </a>
-            )}
-            {truck.contact_email && (
-              <a
-                href={`mailto:${truck.contact_email}`}
-                onClick={(e) => {e.preventDefault(); e.stopPropagation(); window.location.href = `mailto:${truck.contact_email}`}}
-                className="w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <Mail className="w-4 h-4" />
               </a>
             )}
           </div>

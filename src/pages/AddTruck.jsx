@@ -46,9 +46,8 @@ export default function AddTruck() {
     inspection_notes: "",
     features: [],
     description: "",
-    shop_name: "Truck Sales Co",
+    shop_name: "Imperial Truck Sales",
     contact_phone: "",
-    contact_email: "",
     location: "",
     latitude: null,
     longitude: null,
@@ -786,16 +785,6 @@ export default function AddTruck() {
                     value={formData.contact_phone}
                     onChange={(e) => handleInputChange("contact_phone", e.target.value)}
                     placeholder="(555) 123-4567"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contact_email">Email</Label>
-                  <Input
-                    id="contact_email"
-                    type="email"
-                    value={formData.contact_email}
-                    onChange={(e) => handleInputChange("contact_email", e.target.value)}
-                    placeholder="contact@trucksales.com"
                   />
                 </div>
                  <div>
