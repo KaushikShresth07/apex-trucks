@@ -130,82 +130,10 @@ function loadTrucksFromFileSystem() {
   // /data/trucks/truck_1.json - Individual truck data
   // /data/trucks/truck_2.json - Individual truck data
   // /data/trucks/images/ - Truck images
-  return [
-    {
-      id: "file_truck_1",
-      make: "Peterbilt",
-      model: "579",
-      year: 2019,
-      price: 85000,
-      mileage: 450000,
-      condition: "excellent",
-      fuel_type: "diesel",
-      transmission: "manual",
-      engine: "Cummins X15",
-      horsepower: 450,
-      torque: 1650,
-      axle_configuration: "6x4",
-      cab_type: "sleeper_cab",
-      sleeper_size: "72 inch",
-      wheelbase: 244,
-      gvwr: 80000,
-      exterior_color: "Bright Red",
-      interior_color: "Gray",
-      company_inspected: false,
-      inspection_date: null,
-      inspection_notes: "",
-      features: ["APU", "Custom Exhaust", "Navigation System"],
-      description: "Well-maintained Peterbilt 579 loaded from file system. Excellent fuel economy and comfortable sleeper.",
-      shop_name: "Truck Sales Co",
-      contact_phone: "(555) 123-4567",
-      contact_email: "sales@trucksales.com",
-      location: "Sacramento, CA",
-      latitude: 38.5816,
-      longitude: -121.4944,
-      vin: "1FTFW1CT5DFC12345",
-      status: "available",
-      images: ["/data/trucks/images/truck_1_0.jpg"],
-      created_date: new Date().toISOString(),
-      source: "filesystem"
-    },
-    {
-      id: "file_truck_2",
-      make: "Freightliner",
-      model: "Cascadia",
-      year: 2020,
-      price: 95000,
-      mileage: 380000,
-      condition: "excellent",
-      fuel_type: "diesel",
-      transmission: "automatic",
-      engine: "Detroit DD16",
-      horsepower: 500,
-      torque: 1850,
-      axle_configuration: "6x4",
-      cab_type: "sleeper_cab",
-      sleeper_size: "63 inch",
-      wheelbase: 252,
-      gvwr: 80000,
-      exterior_color: "Arctic White",
-      interior_color: "Black",
-      company_inspected: true,
-      inspection_date: "2024-01-15T00:00:00Z",
-      inspection_notes: "Recently inspected and approved. All systems working perfectly.",
-      features: ["LED Headlights", "Bluetooth", "Cruise Control"],
-      description: "Low mileage Freightliner Cascadia loaded from file system. Automatic transmission for easier driving.",
-      shop_name: "Truck Sales Co",
-      contact_phone: "(555) 123-4567",
-      contact_email: "sales@trucksales.com",
-      location: "Fresno, CA",
-      latitude: 36.7378,
-      longitude: -119.7871,
-      vin: "1FTFW1ET5DFC67890",
-      status: "available",
-      images: ["/data/trucks/images/truck_2_0.jpg"],
-      created_date: new Date().toISOString(),
-      source: "filesystem"
-    }
-  ];
+  
+  // Return empty array - no hardcoded trucks
+  // All truck data should come from the real file system via RealFileTruckStorage
+  return [];
 }
 
 // Local truck storage service

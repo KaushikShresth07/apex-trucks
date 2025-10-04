@@ -9,9 +9,9 @@ const TRUCKS_DIR = path.resolve(__dirname, '../data/trucks');
 const IMAGES_DIR = path.join(TRUCKS_DIR, 'images');
 const INDEX_FILE = path.join(TRUCKS_DIR, 'index.json');
 
-async function clearAllTrucksAndImages() {
+async function clearAllData() {
   try {
-    console.log('🗑️  Starting cleanup of all trucks and images...');
+    console.log('🧹 Starting complete data cleanup...');
     
     // Clear index.json
     await fs.writeFile(INDEX_FILE, JSON.stringify({ 
@@ -32,16 +32,17 @@ async function clearAllTrucksAndImages() {
       console.log('ℹ️  Images directory is already empty or doesn\'t exist');
     }
 
-    console.log('\n🎉 All trucks and images have been deleted successfully!');
-    console.log('📊 Summary:');
-    console.log('   - Trucks: 0');
-    console.log('   - Images: 0');
-    console.log('   - Storage: Clean');
+    console.log('\n🎉 All server-side data has been cleared!');
+    console.log('\n📋 Next steps:');
+    console.log('1. Restart the API server: pm2 restart apex-trucks-api');
+    console.log('2. Clear browser cache/localStorage');
+    console.log('3. Hard refresh the website (Ctrl+F5)');
+    console.log('4. Check browser console for any cached data');
     
   } catch (error) {
-    console.error('❌ Error clearing trucks and images:', error);
+    console.error('❌ Error clearing data:', error);
     process.exit(1);
   }
 }
 
-clearAllTrucksAndImages();
+clearAllData();
