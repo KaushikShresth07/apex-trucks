@@ -115,7 +115,7 @@ export default function LocationMap({
         style={{ height }}
       >
         <MapContainer
-          center={mapCenter}
+          center={mapCenter || [40.7128, -74.0060]}
           zoom={zoom}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
@@ -129,7 +129,7 @@ export default function LocationMap({
             <MapClickHandler onLocationSelect={handleLocationSelect} mode={mode} />
           )}
           
-          {mode === 'view' && selectedLocation && (
+          {mode === 'view' && selectedLocation && selectedLocation.lat && selectedLocation.lng && (
             <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
               <Popup>
                 Truck Location<br />
