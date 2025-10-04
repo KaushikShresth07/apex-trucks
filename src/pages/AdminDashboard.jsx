@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2, Download, Upload, RefreshCw, CheckCircle } from "lucide-react";
+import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2, Download, Upload, RefreshCw, CheckCircle, Trash2 } from "lucide-react";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -25,6 +25,9 @@ export default function AdminDashboard() {
   const [editFormData, setEditFormData] = useState({});
   const [adminStats, setAdminStats] = useState(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [truckToDelete, setTruckToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const checkUserAndFetchData = async () => {
@@ -130,6 +133,29 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Failed to update truck:", error);
       alert("Update failed. Please check your inputs and try again.");
+    }
+  };
+
+  const handleDeleteClick = (truck) => {
+    setTruckToDelete(truck);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!truckToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await Truck.delete(truckToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setTruckToDelete(null);
+      await fetchTrucks(); // Refresh data
+      alert(`Truck ${truckToDelete.year} ${truckToDelete.make} ${truckToDelete.model} deleted successfully!`);
+    } catch (error) {
+      console.error("Failed to delete truck:", error);
+      alert("Delete failed. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -315,6 +341,14 @@ export default function AdminDashboard() {
                     <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`TruckDetails?id=${truck.id}&from=dashboard`))}>
                       <Eye className="w-3 h-3 mr-1" /> View
                     </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(truck)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" /> Delete
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -371,6 +405,67 @@ export default function AdminDashboard() {
                 <Button type="button" variant="outline">Cancel</Button>
               </DialogClose>
               <Button type="button" onClick={handleUpdate}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {truckToDelete && (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-red-600">Delete Truck</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="flex items-center gap-4 mb-4">
+                <img 
+                  src={truckToDelete.images?.[0] || 'https://via.placeholder.com/150x100?text=No+Image'} 
+                  alt={`${truckToDelete.year} ${truckToDelete.make} ${truckToDelete.model}`}
+                  className="w-20 h-14 object-cover rounded-lg"
+                />
+                <div>
+                  <p className="font-semibold text-lg">{truckToDelete.year} {truckToDelete.make} {truckToDelete.model}</p>
+                  <p className="text-gray-600">{formatPrice(truckToDelete.price)} • {truckToDelete.mileage?.toLocaleString()} mi</p>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4">
+                Are you sure you want to delete this truck? This action cannot be undone and will permanently remove:
+              </p>
+              <ul className="list-disc list-inside text-sm text-gray-600 mb-4">
+                <li>Truck listing and all details</li>
+                <li>All associated images</li>
+                <li>All historical data</li>
+              </ul>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-800 text-sm font-medium">⚠️ This action is permanent and cannot be reversed!</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={isDeleting}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Truck
+                  </>
+                )}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
