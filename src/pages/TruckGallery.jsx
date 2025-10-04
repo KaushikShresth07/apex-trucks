@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import TruckCard from "../components/TruckCard";
 import TruckFilters from "../components/TruckFilters";
 import ImperialLogo from "../components/ImperialLogo";
+import LoadingSpinner from "../components/LoadingSpinner";
+import FadeIn from "../components/FadeIn";
 
 export default function TruckGallery() {
   const [trucks, setTrucks] = useState([]);
@@ -79,12 +81,10 @@ export default function TruckGallery() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="animate-pulse grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array(6).fill(0).map((_, i) => (
-            <div key={i} className="bg-white rounded-3xl h-[500px] shadow-lg" />
-          ))}
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <FadeIn delay={100}>
+          <LoadingSpinner size="xl" text="Loading trucks..." />
+        </FadeIn>
       </div>
     );
   }
@@ -98,24 +98,30 @@ export default function TruckGallery() {
         
         <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="mb-8">
-              <ImperialLogo size="large" variant="full" className="justify-center" />
-            </div>
+            <FadeIn delay={200}>
+              <div className="mb-8">
+                <ImperialLogo size="large" variant="full" className="justify-center" />
+              </div>
+            </FadeIn>
 
-            <h1 className="text-6xl md:text-8xl font-bold mb-8 leading-tight">
-              <span className="bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent">
-                Premium
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                Semi Trucks
-              </span>
-            </h1>
+            <FadeIn delay={300}>
+              <h1 className="text-6xl md:text-8xl font-bold mb-8 leading-tight">
+                <span className="bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent">
+                  Premium
+                </span>
+                <br />
+                <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                  Semi Trucks
+                </span>
+              </h1>
+            </FadeIn>
             
-            <p className="text-xl md:text-2xl text-blue-100/80 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Discover premium semi trucks from Imperial Trucks. 
-              Professional inspection and quality guaranteed.
-            </p>
+            <FadeIn delay={400}>
+              <p className="text-xl md:text-2xl text-blue-100/80 mb-12 leading-relaxed max-w-3xl mx-auto">
+                Discover premium semi trucks from Imperial Truck Sales. 
+                Professional inspection and quality guaranteed.
+              </p>
+            </FadeIn>
             
             <div className="relative max-w-2xl mx-auto mb-12">
               <div className="relative">
@@ -153,7 +159,7 @@ export default function TruckGallery() {
           <div className="text-center">
             <h3 className="text-lg font-semibold text-blue-900 mb-2">Want to List Your Truck?</h3>
             <p className="text-blue-700 mb-4">
-              Contact Imperial Trucks to have your truck professionally inspected and listed on our marketplace.
+              Contact Imperial Truck Sales to have your truck professionally inspected and listed on our marketplace.
             </p>
             <div className="flex justify-center">
               <a href="tel:916-642-5004" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300">
@@ -224,13 +230,9 @@ export default function TruckGallery() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredTrucks.map((truck, index) => (
-              <div 
-                key={truck.id} 
-                className="animate-in slide-in-from-bottom-4 duration-500"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
+              <FadeIn delay={index * 100} key={truck.id}>
                 <TruckCard truck={truck} />
-              </div>
+              </FadeIn>
             ))}
           </div>
         )}

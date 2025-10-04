@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LogIn, AlertCircle, Lock, User as UserIcon, Truck } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import FadeIn from "@/components/FadeIn";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -70,14 +72,15 @@ export default function Login() {
             <Truck className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-blue-900 bg-clip-text text-transparent">
-            Imperial Trucks Admin
+            Imperial Truck Sales Admin
           </h1>
           <p className="text-gray-600 mt-2">Sign in to manage truck listings</p>
         </div>
 
 
         {/* Login Form */}
-        <Card className="shadow-xl border-0">
+        <FadeIn delay={100}>
+          <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="text-2xl text-center font-bold">Sign In</CardTitle>
             <p className="text-gray-600 text-center text-sm">
@@ -138,7 +141,7 @@ export default function Login() {
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <LoadingSpinner size="small" />
                     <span>Signing In...</span>
                   </div>
                 ) : (
@@ -163,6 +166,7 @@ export default function Login() {
             </div>
           </CardContent>
         </Card>
+        </FadeIn>
 
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-gray-500">

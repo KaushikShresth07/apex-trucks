@@ -45,8 +45,8 @@ const ImperialLogo = ({ size = "medium", variant = "full", className = "" }) => 
         {variant === "full" && (
           <>
             {/* Imperial Text */}
-            <text x="70" y="25" fontFamily="Arial, sans-serif" fontSize={currentSize.text * 1.5} fontWeight="bold" fill="#1e40af">IMPERIAL</text>
-            <text x="70" y="42" fontFamily="Arial, sans-serif" fontSize={currentSize.text * 1.1} fontWeight="normal" fill="#64748b">TRUCKS</text>
+            <text x="70" y="25" fontFamily="Arial, sans-serif" fontSize={currentSize.text * 1.4} fontWeight="bold" fill="#1e40af">IMPERIAL</text>
+            <text x="70" y="42" fontFamily="Arial, sans-serif" fontSize={currentSize.text * 1.1} fontWeight="normal" fill="#64748b">TRUCK SALES</text>
             
             {/* Decorative Line */}
             <line x1="70" y1="28" x2="160" y2="28" stroke="#3b82f6" strokeWidth="2"/>
