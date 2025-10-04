@@ -70,7 +70,7 @@ export default function Login() {
             <Truck className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-blue-900 bg-clip-text text-transparent">
-            Truck Sales Admin
+            Imperial Trucks Admin
           </h1>
           <p className="text-gray-600 mt-2">Sign in to manage truck listings</p>
         </div>

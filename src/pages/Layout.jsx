@@ -6,6 +6,7 @@ import { createPageUrl } from "@/utils";
 import { User } from "@/api/entities";
 import { Truck, Plus, Grid3X3, LogIn, UserCheck, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ImperialLogo from "../components/ImperialLogo";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -49,16 +50,8 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <Link to={createPageUrl("TruckGallery")} className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <Truck className="w-6 h-6 text-white" />
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-blue-900 bg-clip-text text-transparent">
-                  Truck Sales Co
-                </h1>
-                <p className="text-xs text-gray-500 -mt-1">Premium Semi Trucks</p>
-              </div>
+            <Link to={createPageUrl("TruckGallery")}>
+              <ImperialLogo size="medium" variant="full" className="hover:opacity-80 transition-opacity" />
             </Link>
 
             {/* Navigation & Global Search */}

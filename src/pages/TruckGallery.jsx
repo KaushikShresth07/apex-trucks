@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 import TruckCard from "../components/TruckCard";
 import TruckFilters from "../components/TruckFilters";
+import ImperialLogo from "../components/ImperialLogo";
 
 export default function TruckGallery() {
   const [trucks, setTrucks] = useState([]);
@@ -97,9 +98,8 @@ export default function TruckGallery() {
         
         <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8">
-              <Sparkles className="w-4 h-4 text-yellow-400" />
-              <span className="text-white/90 text-sm font-medium">Truck Sales Co</span>
+            <div className="mb-8">
+              <ImperialLogo size="large" variant="full" className="justify-center" />
             </div>
 
             <h1 className="text-6xl md:text-8xl font-bold mb-8 leading-tight">
@@ -113,7 +113,7 @@ export default function TruckGallery() {
             </h1>
             
             <p className="text-xl md:text-2xl text-blue-100/80 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Discover quality semi trucks from Truck Sales Co. 
+              Discover premium semi trucks from Imperial Trucks. 
               Professional inspection and quality guaranteed.
             </p>
             
@@ -153,7 +153,7 @@ export default function TruckGallery() {
           <div className="text-center">
             <h3 className="text-lg font-semibold text-blue-900 mb-2">Want to List Your Truck?</h3>
             <p className="text-blue-700 mb-4">
-              Contact Truck Sales Co to have your truck professionally inspected and listed on our marketplace.
+              Contact Imperial Trucks to have your truck professionally inspected and listed on our marketplace.
             </p>
             <div className="flex justify-center">
               <a href="tel:916-642-5004" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300">

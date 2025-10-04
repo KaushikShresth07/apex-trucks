@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#1e40af" rx="6"/>
+  
+  <!-- Truck Icon -->
+  <g transform="translate(6, 6)">
+    <!-- Truck Body -->
+    <rect x="2" y="8" width="12" height="6" fill="white" rx="1"/>
+    <rect x="3" y="2" width="10" height="4" fill="white" rx="1"/>
+    
+    <!-- Trailer -->
+    <rect x="14" y="10" width="8" height="3" fill="white"/>
+    
+    <!-- Wheels -->
+    <circle cx="5" cy="14.5" r="1.5" fill="white"/>
+    <circle cx="11" cy="14.5" r="1.5" fill="white"/>
+    <circle cx="16" cy="13" r="1" fill="white"/>
+  </g>
+</svg>
