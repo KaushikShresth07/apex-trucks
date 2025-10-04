@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Phone, Mail, CheckCircle, Tag, Settings, Gauge, Fuel, Calendar, Car, BedDouble, Users, Trash2, Loader2, Shield, CheckCircle2, Edit, Save, X } from "lucide-react";
+import LocationMap from "@/components/LocationMap";
 
 export default function TruckDetails() {
   const location = useLocation();
@@ -430,21 +431,20 @@ export default function TruckDetails() {
               <p className="text-gray-600 leading-relaxed text-base">{truck.description || "No description provided."}</p>
             </div>
 
-            {/* Location Map - Temporarily disabled to fix TypeError */}
+            {/* Location Map */}
             {truck.latitude && truck.longitude && (
               <div className="mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Location</h3>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden p-8 text-center">
-                  <div className="text-gray-500">
-                    <MapPin className="w-12 h-12 mx-auto mb-4 text-blue-500" />
-                    <p className="text-lg font-medium">Location: {truck.location}</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Coordinates: {truck.latitude.toFixed(6)}, {truck.longitude.toFixed(6)}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Interactive map temporarily disabled for stability
-                    </p>
-                  </div>
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <LocationMap
+                    initialLocation={{ lat: truck.latitude, lng: truck.longitude }}
+                    mode="view"
+                    height="400px"
+                    showControls={false}
+                    zoom={12}
+                    enableGeocoding={false}
+                    showAddressInput={false}
+                  />
                 </div>
                 {truck.location && (
                   <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">

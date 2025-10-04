@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Eye, ShieldCheck, Lock, Loader2, List, BarChart2, Download, Upload, RefreshCw, CheckCircle, Trash2, MapPin } from "lucide-react";
+import LocationMap from "@/components/LocationMap";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -416,26 +417,23 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            {/* Location Map - Temporarily disabled to fix TypeError */}
+            {/* Location Map */}
             <div className="mt-4">
               <div className="flex items-center gap-2 mb-3">
                 <MapPin className="w-4 h-4 text-blue-600" />
-                <Label className="text-sm font-medium">Set Location Coordinates</Label>
+                <Label className="text-sm font-medium">Set Location on Map</Label>
               </div>
-              <div className="border border-gray-200 rounded-lg p-6 text-center bg-gray-50">
-                <div className="text-gray-500">
-                  <MapPin className="w-8 h-8 mx-auto mb-3 text-blue-500" />
-                  <p className="text-sm font-medium mb-2">Location Input Temporarily Disabled</p>
-                  <p className="text-xs text-gray-400">
-                    Interactive map disabled for stability. Location text field above still works.
-                  </p>
-                  {selectedLocation && (
-                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                      <strong>Selected:</strong> {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <LocationMap
+                initialLocation={selectedLocation}
+                onLocationChange={handleLocationChange}
+                mode="select"
+                height="300px"
+                showControls={true}
+                className="border border-gray-200 rounded-lg"
+                zoom={10}
+                enableGeocoding={true}
+                showAddressInput={true}
+              />
             </div>
             <DialogFooter>
               <DialogClose asChild>
